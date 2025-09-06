@@ -21,16 +21,38 @@ const alchemy = new Alchemy(settings);
 
 function App() {
   const [blockNumber, setBlockNumber] = useState();
+  const [blockInfo, setBlockInfo] = useState(null);
 
   useEffect(() => {
-    async function getBlockNumber() {
-      setBlockNumber(await alchemy.core.getBlockNumber());
+    async function getBlockData() {
+      const currentBlockNumber = await alchemy.core.getBlockNumber();
+      setBlockNumber(currentBlockNumber);
+
+      const currentBlockInfo = await alchemy.core.getBlock(currentBlockNumber);
+      setBlockInfo(currentBlockInfo);
     }
 
-    getBlockNumber();
-  });
+    getBlockData();
+  }, []);
 
-  return <div className="App">Block Number: {blockNumber}</div>;
+  return (
+    <div className="App">
+      Block Number: {blockNumber}
+      <br />
+      <br />
+      <div>
+        <strong>Block Info:</strong>
+        {/*
+          First, check if blockInfo exists.
+          Then, stringify the object to display it.
+          The <pre> tag preserves the formatting.
+        */}
+        {blockInfo && (
+          <pre>{JSON.stringify(blockInfo, null, 2)}</pre>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default App;
