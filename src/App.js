@@ -20,8 +20,11 @@ const settings = {
 const alchemy = new Alchemy(settings);
 
 function App() {
-  const [blockNumber, setBlockNumber] = useState();
+  const [blockNumber, setBlockNumber] = useState(null);
   const [blockInfo, setBlockInfo] = useState(null);
+  const [randomTx, setRandomTx] = useState(null);
+  const [from, setFrom] = useState(null);
+  const [to, setTo] = useState(null);
 
   useEffect(() => {
     async function getBlockData() {
@@ -29,7 +32,22 @@ function App() {
       setBlockNumber(currentBlockNumber);
 
       const currentBlockInfo = await alchemy.core.getBlock(currentBlockNumber);
-      setBlockInfo(currentBlockInfo);
+      // delete currentBlockInfo.transactions; Bad practice in React.
+
+      const { transactions, ...blockInfoWithoutTransactions } = currentBlockInfo;
+      setBlockInfo(blockInfoWithoutTransactions);
+
+      if (transactions.length > 0) {
+        const randomTransaction = transactions[Math.floor(Math.random() * transactions.length)];
+        setRandomTx(randomTransaction);
+
+        const receipt = await alchemy.core.getTransactionReceipt(randomTransaction);
+        
+        if(receipt) {
+          setFrom(receipt.from);
+          setTo(receipt.to);
+        }
+      }
     }
 
     getBlockData();
@@ -50,6 +68,14 @@ function App() {
         {blockInfo && (
           <pre>{JSON.stringify(blockInfo, null, 2)}</pre>
         )}
+      </div>
+      <br />
+      <div>
+        Tx: {randomTx}
+        <br />
+        From: {from}
+        <br />
+        To: {to}
       </div>
     </div>
   );
